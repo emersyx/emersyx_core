@@ -25,24 +25,24 @@ type routeConfig struct {
 }
 
 type ircBotConfig struct {
-	Nick          string
-	Ident         string
-	Name          string
-	Version       string
-	ServerAddress string `toml:"server_address"`
-	ServerPort    int    `toml:"server_port"`
-	ServerUseSSL  bool   `toml:"server_use_ssl"`
-	QuitMessage   string `toml:"quit_message"`
+	Nick          *string
+	Ident         *string
+	Name          *string
+	Version       *string
+	ServerAddress *string `toml:"server_address"`
+	ServerPort    *int    `toml:"server_port"`
+	ServerUseSSL  *bool   `toml:"server_use_ssl"`
+	QuitMessage   *string `toml:"quit_message"`
 }
 
 type telegramBotConfig struct {
-	APIToken       string   `toml:"api_token"`
-	UpdatesLimit   int      `toml:"updates_limit"`
-	UpdatesTimeout int      `toml:"updates_timeout"`
-	UpdatesAllowed []string `toml:"updates_allowed"`
+	APIToken       *string   `toml:"api_token"`
+	UpdatesLimit   *int      `toml:"updates_limit"`
+	UpdatesTimeout *int      `toml:"updates_timeout"`
+	UpdatesAllowed *[]string `toml:"updates_allowed"`
 }
 
-type baseConfig struct {
+type emersyxConfig struct {
 	Receptors    map[string]receptorConfig
 	Processors   map[string]processorConfig
 	Router       routerConfig
@@ -51,7 +51,7 @@ type baseConfig struct {
 	TelegramBots map[string]telegramBotConfig `toml:"TelegramBot"`
 }
 
-var bc baseConfig
+var ec emersyxConfig
 
 // emlog is the emlog.EmersyxLogger instance used throughout the emcore component.
 var el emlog.EmersyxLogger
@@ -76,7 +76,7 @@ func parseFlags() error {
 	}
 
 	// read the parameters from specified configuration file
-	_, err = toml.DecodeFile(*confFile, &bc)
+	_, err = toml.DecodeFile(*confFile, &ec)
 	if err != nil {
 		return err
 	}
