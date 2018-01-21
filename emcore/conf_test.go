@@ -54,7 +54,7 @@ func TestParsing(t *testing.T) {
 
 	rt := ec.Routes[0]
 	if rt.Source != "example_irc_id" {
-		t.Log(fmt.Sprintf("incorrect values for the source, got \"%s\"", len(rt.Source)))
+		t.Log(fmt.Sprintf("incorrect values for the source, got \"%d\"", len(rt.Source)))
 		t.Fail()
 	}
 	if len(rt.Destination) != 2 {

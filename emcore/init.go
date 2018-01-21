@@ -69,10 +69,9 @@ func getPlugin(path string) (*plugin.Plugin, error) {
 			el.Errorf("error occured while loading go plugin at path \"%s\"\n", path)
 			el.Errorln(err.Error())
 			return p, err
-		} else {
-			// if a new plugin has been opened, then save it into the "plugins" global map
-			plugins[path] = p
 		}
+		// if a new plugin has been opened, then save it into the "plugins" global map
+		plugins[path] = p
 	}
 
 	return p, nil
