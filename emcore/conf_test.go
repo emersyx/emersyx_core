@@ -7,196 +7,194 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	err := parseFlags()
-
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		// run the tests
-		os.Exit(m.Run())
-	}
+	parseFlags()
+	loadConfig()
+	os.Exit(m.Run())
 }
 
 func TestParsing(t *testing.T) {
-	if len(ec.Receptors) != 2 {
-		t.Log(fmt.Sprintf("expected 2 receptors in the config, got %d instead", len(ec.Receptors)))
+	if len(ec.IRCGateways) != 1 {
+		t.Log(fmt.Sprintf("expected 1 irc gateway in the config, got %d instead", len(ec.IRCGateways)))
 		t.Fail()
-	} else if len(ec.Processors) != 2 {
+	}
+	if len(ec.TelegramGateways) != 1 {
+		t.Log(fmt.Sprintf("expected 1 telegram gateway in the config, got %d instead", len(ec.TelegramGateways)))
+		t.Fail()
+	}
+	if len(ec.Processors) != 2 {
 		t.Log(fmt.Sprintf("expected 2 processors in the config, got %d instead", len(ec.Processors)))
 		t.Fail()
-	} else if len(ec.Routes) != 2 {
+	}
+	if len(ec.Routes) != 2 {
 		t.Log(fmt.Sprintf("expected 2 routes in the config, got %d instead", len(ec.Routes)))
 		t.Fail()
 	}
+	if t.Failed() {
+		return
+	}
 
-	if rec, ok := ec.Receptors["example_irc_id"]; ok {
-		if rec.ReceptorType != "IRCBot" {
-			t.Log(fmt.Sprintf("incorrect receptor type for example_irc_id, expected \"IRCBot\", got \"%s\" instead", rec.ReceptorType))
-			t.Fail()
-		}
-		if rec.Plugin != "path/to/emirc.so" {
-			t.Log(fmt.Sprintf("incorrect receptor plugin path for example_irc_id, got \"%s\"", rec.Plugin))
-			t.Fail()
-		}
+	proc := ec.Processors[0]
+	if proc.PluginPath != "path/to/emirc2tg.so" {
+		t.Log(fmt.Sprintf("incorrect processor plugin path for emirc2tg, got \"%s\"", proc.PluginPath))
+		t.Fail()
+	}
+	if proc.Identifier != "emirc2tg" {
+		t.Log(fmt.Sprintf("incorrect processor identifier for emirc2tg, got \"%s\"", proc.Identifier))
+		t.Fail()
+	}
+	if proc.Config != "path/to/emirc2tg.toml" {
+		t.Log(fmt.Sprintf("incorrect processor config file path for emirc2tg, got \"%s\"", proc.Config))
+		t.Fail()
+	}
+
+	if ec.Router.PluginPath != "path/to/emrouter.so" {
+		t.Log(fmt.Sprintf("incorrect router plugin path, got \"%s\"", ec.Router.PluginPath))
+		t.Fail()
+	}
+
+	rt := ec.Routes[0]
+	if rt.Source != "example_irc_id" {
+		t.Log(fmt.Sprintf("incorrect values for the source, got \"%s\"", len(rt.Source)))
+		t.Fail()
+	}
+	if len(rt.Destination) != 2 {
+		t.Log(fmt.Sprintf("incorrect number of destinations for the example_irc_id route, expected 2, got %d", len(rt.Destination)))
+		t.Fail()
+	}
+	if rt.Destination[0] != "emirc2tg" || rt.Destination[1] != "emirc_voice" {
+		t.Log("incorrect values for destinations of the example_irc_id")
+		t.Fail()
+	}
+
+	ircgw := ec.IRCGateways[0]
+	if ircgw.PluginPath == nil {
+		t.Log("the ircgw.PluginPath value is nil")
+		t.Fail()
+	} else if *ircgw.PluginPath != "path/to/emirc.so" {
+		t.Log(fmt.Sprintf("the ircgw.PluginPath value is incorrect, got \"%s\"", *ircgw.PluginPath))
+		t.Fail()
+	}
+
+	if ircgw.Identifier == nil {
+		t.Log("the ircgw.Identifier value is nil")
+		t.Fail()
+	} else if *ircgw.Identifier != "example_irc_id" {
+		t.Log(fmt.Sprintf("the ircgw.Identifier value is incorrect, got \"%s\"", *ircgw.Identifier))
+		t.Fail()
+	}
+
+	if ircgw.Nick == nil {
+		t.Log("the ircgw.Nick value is nil")
+		t.Fail()
+	} else if *ircgw.Nick != "emersyx" {
+		t.Log(fmt.Sprintf("the ircgw.Nick value is incorrect, got \"%s\"", *ircgw.Nick))
+		t.Fail()
+	}
+
+	if ircgw.Ident == nil {
+		t.Log("the ircgw.Ident value is nil")
+		t.Fail()
+	} else if *ircgw.Ident != "emersyx" {
+		t.Log(fmt.Sprintf("the ircgw.Ident value is incorrect, got \"%s\"", *ircgw.Ident))
+		t.Fail()
+	}
+
+	if ircgw.Name == nil {
+		t.Log("the ircgw.Name value is nil")
+		t.Fail()
+	} else if *ircgw.Name != "emersyx" {
+		t.Log(fmt.Sprintf("the ircgw.Name value is incorrect, got \"%s\"", *ircgw.Name))
+		t.Fail()
+	}
+
+	if ircgw.Version == nil {
+		t.Log("the ircgw.Version value is nil")
+		t.Fail()
+	} else if *ircgw.Version != "alpha" {
+		t.Log(fmt.Sprintf("the ircgw.Version value is incorrect, got \"%s\"", *ircgw.Version))
+		t.Fail()
+	}
+
+	if ircgw.ServerAddress == nil {
+		t.Log("the ircgw.ServerAddress value is nil")
+		t.Fail()
+	} else if *ircgw.ServerAddress != "chat.freenode.net" {
+		t.Log(fmt.Sprintf("the ircgw.ServerAddress value is incorrect, got \"%s\"", *ircgw.ServerAddress))
+		t.Fail()
+	}
+
+	if ircgw.ServerPort == nil {
+		t.Log("the ircgw.ServerPort value is nil")
+		t.Fail()
+	} else if *ircgw.ServerPort != 6697 {
+		t.Log(fmt.Sprintf("the ircgw.ServerPort value is incorrect, got %d", *ircgw.ServerPort))
+		t.Fail()
+	}
+
+	if ircgw.ServerUseSSL == nil {
+		t.Log("the ircgw.ServerUseSSL value is nil")
+		t.Fail()
+	} else if *ircgw.ServerUseSSL != true {
+		t.Log(fmt.Sprintf("the ircgw.ServerUseSSL value is incorrect, got %t", *ircgw.ServerUseSSL))
+		t.Fail()
+	}
+
+	if ircgw.QuitMessage == nil {
+		t.Log("the ircgw.QuitMessage value is nil")
+		t.Fail()
+	} else if *ircgw.QuitMessage != "bye from emersyx!" {
+		t.Log(fmt.Sprintf("the ircgw.QuitMessage value is incorrect, got \"%s\"", *ircgw.QuitMessage))
+		t.Fail()
+	}
+
+	tggw := ec.TelegramGateways[0]
+	if tggw.APIToken == nil {
+		t.Log("the tggw.APIToken value is nil")
+		t.Fail()
+	} else if *tggw.APIToken != "Telegram Bot API token" {
+		t.Log(fmt.Sprintf("the tggw.APIToken value is incorrect, got \"%s\"", *tggw.APIToken))
+		t.Fail()
+	}
+
+	if tggw.UpdatesLimit == nil {
+		t.Log("the tggw.UpdatesLimit value is nil")
+		t.Fail()
+	} else if *tggw.UpdatesLimit != 100 {
+		t.Log(fmt.Sprintf("the tggw.UpdatesLimit value is incorrect, got %d", *tggw.UpdatesLimit))
+		t.Fail()
+	}
+
+	if tggw.UpdatesTimeout == nil {
+		t.Log("the tggw.UpdatesTimeout value is nil")
+		t.Fail()
+	} else if *tggw.UpdatesTimeout != 60 {
+		t.Log(fmt.Sprintf("the tggw.UpdatesTimeout value is incorrect, got %d", *tggw.UpdatesTimeout))
+		t.Fail()
+	}
+
+	if tggw.UpdatesAllowed == nil {
+		t.Log("the tggw.UpdatesAllowed value is nil")
+		t.Fail()
+	} else if len(*tggw.UpdatesAllowed) != 9 {
+		t.Log(fmt.Sprintf("the tggw.UpdatesAllowed array has invalid length, got %d", len(*tggw.UpdatesAllowed)))
+		t.Fail()
 	} else {
-		t.Log("did not find the example_irc_id receptor configuration")
-		t.Fail()
-	}
-
-	if proc, ok := ec.Processors["emirc2tg"]; ok {
-		if proc.Plugin != "path/to/emirc2tg.so" {
-			t.Log(fmt.Sprintf("incorrect processor plugin path for emirc2tg, got \"%s\"", proc.Plugin))
-			t.Fail()
+		expectedUpdates := []string{
+			"message",
+			"edited_message",
+			"channel_post",
+			"edited_channel_post",
+			"inline_query",
+			"chosen_inline_result",
+			"callback_query",
+			"shipping_query",
+			"pre_checkout_query",
 		}
-		if proc.Config != "path/to/emirc2tg.toml" {
-			t.Log(fmt.Sprintf("incorrect processor config file path for emirc2tg, got \"%s\"", proc.Config))
-			t.Fail()
-		}
-	} else {
-		t.Log("did not find the emirc2tg processor configuration")
-		t.Fail()
-	}
-
-	if ec.Router.Plugin != "path/to/emrouter.so" {
-		t.Log(fmt.Sprintf("incorrect router plugin path, got \"%s\"", ec.Router.Plugin))
-		t.Fail()
-	}
-
-	if routes, ok := ec.Routes["example_irc_id"]; ok {
-		if len(routes.Destination) != 2 {
-			t.Log(fmt.Sprintf("incorrect number of destinations for the example_irc_id route, expected 2, got %d", len(routes.Destination)))
-			t.Fail()
-		}
-		if routes.Destination[0] != "emirc2tg" || routes.Destination[1] != "emirc_voice" {
-			t.Log("incorrect values for destinations of the example_irc_id")
-			t.Fail()
-		}
-	} else {
-		t.Log("did not find the routes for the example_irc_id receptor")
-		t.Fail()
-	}
-
-	if ircbot, ok := ec.IRCBots["example_irc_id"]; ok {
-		if ircbot.Nick == nil {
-			t.Log("the ircbot.Nick value is nil")
-			t.Fail()
-		} else if *ircbot.Nick != "emersyx" {
-			t.Log(fmt.Sprintf("the ircbot.Nick value is incorrect, got \"%s\"", *ircbot.Nick))
-			t.Fail()
-		}
-
-		if ircbot.Ident == nil {
-			t.Log("the ircbot.Ident value is nil")
-			t.Fail()
-		} else if *ircbot.Ident != "emersyx" {
-			t.Log(fmt.Sprintf("the ircbot.Ident value is incorrect, got \"%s\"", *ircbot.Ident))
-			t.Fail()
-		}
-
-		if ircbot.Name == nil {
-			t.Log("the ircbot.Name value is nil")
-			t.Fail()
-		} else if *ircbot.Name != "emersyx" {
-			t.Log(fmt.Sprintf("the ircbot.Name value is incorrect, got \"%s\"", *ircbot.Name))
-			t.Fail()
-		}
-
-		if ircbot.Version == nil {
-			t.Log("the ircbot.Version value is nil")
-			t.Fail()
-		} else if *ircbot.Version != "alpha" {
-			t.Log(fmt.Sprintf("the ircbot.Version value is incorrect, got \"%s\"", *ircbot.Version))
-			t.Fail()
-		}
-
-		if ircbot.ServerAddress == nil {
-			t.Log("the ircbot.ServerAddress value is nil")
-			t.Fail()
-		} else if *ircbot.ServerAddress != "chat.freenode.net" {
-			t.Log(fmt.Sprintf("the ircbot.ServerAddress value is incorrect, got \"%s\"", *ircbot.ServerAddress))
-			t.Fail()
-		}
-
-		if ircbot.ServerPort == nil {
-			t.Log("the ircbot.ServerPort value is nil")
-			t.Fail()
-		} else if *ircbot.ServerPort != 6697 {
-			t.Log(fmt.Sprintf("the ircbot.ServerPort value is incorrect, got %d", *ircbot.ServerPort))
-			t.Fail()
-		}
-
-		if ircbot.ServerUseSSL == nil {
-			t.Log("the ircbot.ServerUseSSL value is nil")
-			t.Fail()
-		} else if *ircbot.ServerUseSSL != true {
-			t.Log(fmt.Sprintf("the ircbot.ServerUseSSL value is incorrect, got %t", *ircbot.ServerUseSSL))
-			t.Fail()
-		}
-
-		if ircbot.QuitMessage == nil {
-			t.Log("the ircbot.QuitMessage value is nil")
-			t.Fail()
-		} else if *ircbot.QuitMessage != "bye from emersyx!" {
-			t.Log(fmt.Sprintf("the ircbot.QuitMessage value is incorrect, got \"%s\"", *ircbot.QuitMessage))
-			t.Fail()
-		}
-	} else {
-		t.Log("did not find the config for the example_irc_id IRCBot")
-		t.Fail()
-	}
-
-	if telegrambot, ok := ec.TelegramBots["example_telegram_id"]; ok {
-		if telegrambot.APIToken == nil {
-			t.Log("the telegrambot.APIToken value is nil")
-			t.Fail()
-		} else if *telegrambot.APIToken != "Telegram Bot API token" {
-			t.Log(fmt.Sprintf("the telegrambot.APIToken value is incorrect, got \"%s\"", *telegrambot.APIToken))
-			t.Fail()
-		}
-
-		if telegrambot.UpdatesLimit == nil {
-			t.Log("the telegrambot.UpdatesLimit value is nil")
-			t.Fail()
-		} else if *telegrambot.UpdatesLimit != 100 {
-			t.Log(fmt.Sprintf("the telegrambot.UpdatesLimit value is incorrect, got %d", *telegrambot.UpdatesLimit))
-			t.Fail()
-		}
-
-		if telegrambot.UpdatesTimeout == nil {
-			t.Log("the telegrambot.UpdatesTimeout value is nil")
-			t.Fail()
-		} else if *telegrambot.UpdatesTimeout != 60 {
-			t.Log(fmt.Sprintf("the telegrambot.UpdatesTimeout value is incorrect, got %d", *telegrambot.UpdatesTimeout))
-			t.Fail()
-		}
-
-		if telegrambot.UpdatesAllowed == nil {
-			t.Log("the telegrambot.UpdatesAllowed value is nil")
-			t.Fail()
-		} else if len(*telegrambot.UpdatesAllowed) != 9 {
-			t.Log(fmt.Sprintf("the telegrambot.UpdatesAllowed array has invalid length, got %d", len(*telegrambot.UpdatesAllowed)))
-			t.Fail()
-		} else {
-			expectedUpdates := []string{
-				"message",
-				"edited_message",
-				"channel_post",
-				"edited_channel_post",
-				"inline_query",
-				"chosen_inline_result",
-				"callback_query",
-				"shipping_query",
-				"pre_checkout_query",
+		for i, u := range *tggw.UpdatesAllowed {
+			if u != expectedUpdates[i] {
+				t.Log(fmt.Sprintf("the tggw.UpdatesAllowed array has an invalid value at index %d, got \"%s\"", i, (*tggw.UpdatesAllowed)[i]))
+				t.Fail()
 			}
-			for i, u := range *telegrambot.UpdatesAllowed {
-				if u != expectedUpdates[i] {
-					t.Log(fmt.Sprintf("the telegrambot.UpdatesAllowed array has an invalid value at index %d, got \"%s\"", i, (*telegrambot.UpdatesAllowed)[i]))
-					t.Fail()
-				}
-			}
 		}
-	} else {
-		t.Log("did not find the config for the example_telegram_id TelegramBot")
-		t.Fail()
 	}
 }
