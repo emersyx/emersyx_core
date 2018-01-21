@@ -1,55 +1,50 @@
-[receptors]
-    [receptors.example_irc_id]
-    type = "IRCBot"
-    plugin = "path/to/emirc.so"
+[[processors]]
+plugin_path = "path/to/emirc2tg.so"
+identifier = "emirc2tg"
+config = "path/to/emirc2tg.toml"
 
-    [receptors.example_telegram_id]
-    type = "TelegramBot"
-    plugin = "path/to/emtg.so"
+[[processors]]
+plugin_path = "path/to/emirc_voice.so"
+identifier = "emirc_voice"
+config = "path/to/emirc_voice.toml"
 
-[processors]
-    [processors.emirc2tg]
-    plugin = "path/to/emirc2tg.so"
-    config = "path/to/emirc2tg.toml"
+[[IRCGateways]]
+plugin_path = "path/to/emirc.so"
+identifier = "example_irc_id"
+nick = "emersyx"
+ident = "emersyx"
+name = "emersyx"
+version = "alpha"
+server_address = "chat.freenode.net"
+server_port = 6697
+server_use_ssl = true
+quit_message = "bye from emersyx!"
 
-    [processors.emirc_voice]
-    plugin = "path/to/emirc_voice.so"
-    config = "path/to/emirc_voice.toml"
+[[TelegramGateways]]
+plugin_path = "path/to/emtg.so"
+identifier = "example_telegram_id"
+api_token = "Telegram Bot API token"
+updates_limit = 100
+updates_timeout = 60
+updates_allowed = [
+    "message",
+    "edited_message",
+    "channel_post",
+    "edited_channel_post",
+    "inline_query",
+    "chosen_inline_result",
+    "callback_query",
+    "shipping_query",
+    "pre_checkout_query"
+]
 
 [router]
-plugin = "path/to/emrouter.so"
+plugin_path = "path/to/emrouter.so"
 
-[routes]
-    [routes.example_irc_id]
-    destination = [ "emirc2tg", "emirc_voice" ]
+[[routes]]
+source = "example_irc_id"
+destination = [ "emirc2tg", "emirc_voice" ]
 
-    [routes.example_telegram_id]
-    destination = [ "emirc2tg" ]
-
-[IRCBot]
-    [IRCBot.example_irc_id]
-    nick = "emersyx"
-    ident = "emersyx"
-    name = "emersyx"
-    version = "alpha"
-    server_address = "chat.freenode.net"
-    server_port = 6697
-    server_use_ssl = true
-    quit_message = "bye from emersyx!"
-
-[TelegramBot]
-    [TelegramBot.example_telegram_id]
-    api_token = "Telegram Bot API token"
-    updates_limit = 100
-    updates_timeout = 60
-    updates_allowed = [
-        "message",
-        "edited_message",
-        "channel_post",
-        "edited_channel_post",
-        "inline_query",
-        "chosen_inline_result",
-        "callback_query",
-        "shipping_query",
-        "pre_checkout_query"
-    ]
+[[routes]]
+source = "example_telegram_id"
+destination = [ "emirc2tg" ]
