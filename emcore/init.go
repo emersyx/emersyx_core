@@ -3,8 +3,8 @@ package main
 import (
 	"emersyx.net/emersyx_apis/emcomapi"
 	"emersyx.net/emersyx_apis/emircapi"
-	"emersyx.net/emersyx_apis/emtgapi"
 	"emersyx.net/emersyx_apis/emrtrapi"
+	"emersyx.net/emersyx_apis/emtgapi"
 	"emersyx.net/emersyx_log/emlog"
 	"flag"
 	"plugin"
@@ -185,10 +185,7 @@ func loadTelegramGateways() ([]emcomapi.Identifiable, error) {
 }
 
 func initGateways() ([]emcomapi.Identifiable, error) {
-	gws := make([]emcomapi.Identifiable,
-		len(ec.IRCGateways) +
-		len(ec.TelegramGateways),
-	)
+	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways)+len(ec.TelegramGateways))
 
 	irc, err := loadIRCGateways()
 	if err != nil {
