@@ -3,6 +3,7 @@
 emcore:
 	@echo "Building emersyx core..."
 	-@rm emersyx
+	@dep ensure
 	@go build -o emersyx ./emcore/*
 
 test:
