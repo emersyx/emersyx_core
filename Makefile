@@ -11,3 +11,4 @@ test:
 	@test -z $(shell gofmt -s -l emcore/*.go)
 	@go vet ./...
 	@golint -set_exit_status $(shell go list ./...)
+	@cd emcore; go test -v -conffile ../config.toml
