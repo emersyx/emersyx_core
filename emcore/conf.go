@@ -7,12 +7,14 @@ import (
 // ec is the emersyxConfig global instance which holds all values from the config file.
 var ec emersyxConfig
 
+// processorConfig is the struct for holding processor configuration values from the emersyx configuration file.
 type processorConfig struct {
 	Identifier string
 	Config     string
 	PluginPath string `toml:"plugin_path"`
 }
 
+// ircGatewayConfig is the struct for holding IRC gateway configuration values from the emersyx configuration file.
 type ircGatewayConfig struct {
 	Identifier    *string
 	Nick          *string
@@ -26,6 +28,8 @@ type ircGatewayConfig struct {
 	PluginPath    *string `toml:"plugin_path"`
 }
 
+// telegramGatewayConfig is the struct for holding Telegram gateway configuration values from the emersyx configuration
+// file.
 type telegramGatewayConfig struct {
 	Identifier     *string
 	APIToken       *string   `toml:"api_token"`
@@ -35,15 +39,18 @@ type telegramGatewayConfig struct {
 	PluginPath     *string   `toml:"plugin_path"`
 }
 
+// routerConfig is the struct for holding router configuration values from the emersyx configuration file.
 type routerConfig struct {
 	PluginPath string `toml:"plugin_path"`
 }
 
+// routeConfig is the struct for holding route configuration values from the emersyx configuration file.
 type routeConfig struct {
 	Source      string
 	Destination []string
 }
 
+// emersyxConfig is the container struct for holding all configuration values from the emersyx configuration file.
 type emersyxConfig struct {
 	Processors       []processorConfig
 	IRCGateways      []ircGatewayConfig

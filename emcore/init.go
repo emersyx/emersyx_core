@@ -77,6 +77,8 @@ func getPlugin(path string) (*plugin.Plugin, error) {
 	return p, nil
 }
 
+// newIRCGateway creates a new emircapi.IRCGateway object using the provided ircGatewayConfig argument. Under the hood,
+// the emircapi.NewIRCGateway function is used
 func newIRCGateway(cfg ircGatewayConfig) (emircapi.IRCGateway, error) {
 	var gw emircapi.IRCGateway
 
@@ -119,6 +121,8 @@ func newIRCGateway(cfg ircGatewayConfig) (emircapi.IRCGateway, error) {
 	return gw, nil
 }
 
+// loadIRCGateways creates and initializez emircapi.IRCGateway objects for all IRC gateways specified in the emersyx
+// configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
 func loadIRCGateways() ([]emcomapi.Identifiable, error) {
 	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways))
 
@@ -133,6 +137,8 @@ func loadIRCGateways() ([]emcomapi.Identifiable, error) {
 	return gws, nil
 }
 
+// newTelegramGateway creates a new emtgapi.TelegramGateway object using the provided telegramGatewayConfig argument.
+// Under the hood, the emtgapi.NewTelegramGateway function is used
 func newTelegramGateway(cfg telegramGatewayConfig) (emtgapi.TelegramGateway, error) {
 	var gw emtgapi.TelegramGateway
 
@@ -169,6 +175,8 @@ func newTelegramGateway(cfg telegramGatewayConfig) (emtgapi.TelegramGateway, err
 	return gw, nil
 }
 
+// loadTelegramGateways creates and initializez emtgapi.TelegramGateway objects for all Telegram gateways specified in
+// the emersyx configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
 func loadTelegramGateways() ([]emcomapi.Identifiable, error) {
 	gws := make([]emcomapi.Identifiable, len(ec.TelegramGateways))
 
@@ -183,6 +191,8 @@ func loadTelegramGateways() ([]emcomapi.Identifiable, error) {
 	return gws, nil
 }
 
+// initGateways creates and initializez objects for all gateways specified in the emersyx configuration file. The
+// objects are returned in an array of type []emcomapi.Identifiable.
 func initGateways() ([]emcomapi.Identifiable, error) {
 	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways)+len(ec.TelegramGateways))
 
@@ -201,6 +211,8 @@ func initGateways() ([]emcomapi.Identifiable, error) {
 	return gws, nil
 }
 
+// initProcessors creates and initializez emcomapi.Processor objects for all processors specified in the emersyx
+// configuration file. The objects are returned in an array of type []emcomapi.Processor.
 func initProcessors() ([]emcomapi.Processor, error) {
 	procs := make([]emcomapi.Processor, len(ec.Processors))
 
@@ -216,6 +228,7 @@ func initProcessors() ([]emcomapi.Processor, error) {
 	return procs, nil
 }
 
+// initRouter creates and initializez an emrtrapi.Router object as specified in the emersyx configuration file.
 func initRouter() (emrtrapi.Router, error) {
 	plug, err := getPlugin(ec.Router.PluginPath)
 	if err != nil {
