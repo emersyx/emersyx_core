@@ -8,7 +8,8 @@ emcore:
 
 test:
 	@echo "Running the tests with gofmt, go vet and golint..."
+	-@dep ensure # dep is not available in travis-ci
 	@test -z $(shell gofmt -s -l emcore/*.go)
 	@go vet ./...
 	@golint -set_exit_status $(shell go list ./...)
-	@dep ensure; cd emcore; go test -v -conffile ../config.toml
+	@cd emcore; go test -v -conffile ../config.toml
