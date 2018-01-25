@@ -7,6 +7,8 @@ import (
 	"emersyx.net/emersyx_apis/emtgapi"
 	"emersyx.net/emersyx_log/emlog"
 	"flag"
+	"fmt"
+	"os"
 	"plugin"
 )
 
@@ -44,21 +46,21 @@ func parseFlags() {
 
 // initLogging configures the logger (i.e. the el global variable). The parseFlags function needs to be called before
 // this one.
-func initLogging() error {
+func initLogging() {
 	var err error
 
-	// create the emlog.Emlog object
 	el, err = emlog.NewEmersyxLogger(*flLogStdout, *flLogFile, "emcore", *flLogLevel)
 	if err != nil {
-		return err
+		// do not use the logger here since it might have not been initialized
+		fmt.Println("error occured while initializing the logger")
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
-
-	return nil
 }
 
 // getPlugin loads a go plugin file at a specified path and returns a *plugin.Plugin object. The function caches
 // previously opened plugins in the global "plugins" map object.
-func getPlugin(path string) (*plugin.Plugin, error) {
+func getPlugin(path string) *plugin.Plugin {
 	var p *plugin.Plugin
 	p, ok := plugins[path]
 
@@ -66,26 +68,21 @@ func getPlugin(path string) (*plugin.Plugin, error) {
 	if ok != true {
 		p, err := plugin.Open(path)
 		if err != nil {
-			el.Errorf("error occured while loading go plugin at path \"%s\"\n", path)
 			el.Errorln(err.Error())
-			return p, err
+			el.Fatalln("error occured while loading go plugin at path \"%s\"\n", path)
+			return nil
 		}
 		// if a new plugin has been opened, then save it into the "plugins" global map
 		plugins[path] = p
 	}
 
-	return p, nil
+	return p
 }
 
 // newIRCGateway creates a new emircapi.IRCGateway object using the provided ircGatewayConfig argument. Under the hood,
-// the emircapi.NewIRCGateway function is used
-func newIRCGateway(cfg ircGatewayConfig) (emircapi.IRCGateway, error) {
-	var gw emircapi.IRCGateway
-
-	p, err := getPlugin(*cfg.PluginPath)
-	if err != nil {
-		return gw, err
-	}
+// the emircapi.NewIRCGateway function is used.
+func newIRCGateway(cfg ircGatewayConfig) emircapi.IRCGateway {
+	p := getPlugin(*cfg.PluginPath)
 
 	// the constant 7 in the call to make below is the maximum number of possible options (i.e. number of methods in
 	// emircapi.IRCOptions)
@@ -113,39 +110,30 @@ func newIRCGateway(cfg ircGatewayConfig) (emircapi.IRCGateway, error) {
 		optarg = append(optarg, opt.QuitMessage(*cfg.QuitMessage))
 	}
 
-	gw, err = emircapi.NewIRCGateway(p, optarg...)
+	gw, err := emircapi.NewIRCGateway(p, optarg...)
 	if err != nil {
-		return gw, err
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while creating a new IRC gateway")
 	}
-
-	return gw, nil
+	return gw
 }
 
 // loadIRCGateways creates and initializez emircapi.IRCGateway objects for all IRC gateways specified in the emersyx
 // configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
-func loadIRCGateways() ([]emcomapi.Identifiable, error) {
+func loadIRCGateways() []emcomapi.Identifiable {
 	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways))
 
 	for _, cfg := range ec.IRCGateways {
-		gw, err := newIRCGateway(cfg)
-		if err != nil {
-			return gws, err
-		}
-		gws = append(gws, gw)
+		gws = append(gws, newIRCGateway(cfg))
 	}
 
-	return gws, nil
+	return gws
 }
 
 // newTelegramGateway creates a new emtgapi.TelegramGateway object using the provided telegramGatewayConfig argument.
-// Under the hood, the emtgapi.NewTelegramGateway function is used
-func newTelegramGateway(cfg telegramGatewayConfig) (emtgapi.TelegramGateway, error) {
-	var gw emtgapi.TelegramGateway
-
-	p, err := getPlugin(*cfg.PluginPath)
-	if err != nil {
-		return gw, err
-	}
+// Under the hood, the emtgapi.NewTelegramGateway function is used.
+func newTelegramGateway(cfg telegramGatewayConfig) emtgapi.TelegramGateway {
+	p := getPlugin(*cfg.PluginPath)
 
 	// the constant 5 in the call to make below is the maximum number of possible options (i.e. number of methods in
 	// emtgapi.TelegramOptions)
@@ -167,73 +155,115 @@ func newTelegramGateway(cfg telegramGatewayConfig) (emtgapi.TelegramGateway, err
 		optarg = append(optarg, opt.UpdatesAllowed(*cfg.UpdatesAllowed...))
 	}
 
-	gw, err = emtgapi.NewTelegramGateway(p, optarg...)
+	gw, err := emtgapi.NewTelegramGateway(p, optarg...)
 	if err != nil {
-		return gw, err
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while creating a new IRC gateway")
 	}
-
-	return gw, nil
+	return gw
 }
 
 // loadTelegramGateways creates and initializez emtgapi.TelegramGateway objects for all Telegram gateways specified in
 // the emersyx configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
-func loadTelegramGateways() ([]emcomapi.Identifiable, error) {
+func loadTelegramGateways() []emcomapi.Identifiable {
 	gws := make([]emcomapi.Identifiable, len(ec.TelegramGateways))
 
 	for _, cfg := range ec.TelegramGateways {
-		gw, err := newTelegramGateway(cfg)
-		if err != nil {
-			return gws, err
-		}
-		gws = append(gws, gw)
+		gws = append(gws, newTelegramGateway(cfg))
 	}
 
-	return gws, nil
+	return gws
 }
 
 // initGateways creates and initializez objects for all gateways specified in the emersyx configuration file. The
 // objects are returned in an array of type []emcomapi.Identifiable.
-func initGateways() ([]emcomapi.Identifiable, error) {
+func initGateways() []emcomapi.Identifiable {
 	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways)+len(ec.TelegramGateways))
 
-	irc, err := loadIRCGateways()
-	if err != nil {
-		return gws, err
-	}
+	irc := loadIRCGateways()
 	gws = append(gws, irc...)
 
-	tg, err := loadTelegramGateways()
-	if err != nil {
-		return gws, err
-	}
+	tg := loadTelegramGateways()
 	gws = append(gws, tg...)
 
-	return gws, nil
+	return gws
 }
 
 // initProcessors creates and initializez emcomapi.Processor objects for all processors specified in the emersyx
 // configuration file. The objects are returned in an array of type []emcomapi.Processor.
-func initProcessors() ([]emcomapi.Processor, error) {
+func initProcessors() []emcomapi.Processor {
 	procs := make([]emcomapi.Processor, len(ec.Processors))
 
 	for _, pcfg := range ec.Processors {
-		plug, err := getPlugin(pcfg.PluginPath)
+		p := getPlugin(pcfg.PluginPath)
+		proc, err := emcomapi.NewProcessor(p, pcfg.Identifier, pcfg.Config)
 		if err != nil {
-			return procs, err
+			el.Errorln(err.Error())
+			el.Fatalln("error occured while creating a new IRC gateway")
 		}
-		proc, err := emcomapi.NewProcessor(plug, pcfg.Identifier, pcfg.Config)
 		procs = append(procs, proc)
 	}
 
-	return procs, nil
+	return procs
 }
 
-// initRouter creates and initializez an emrtrapi.Router object as specified in the emersyx configuration file.
-func initRouter() (emrtrapi.Router, error) {
-	plug, err := getPlugin(ec.Router.PluginPath)
-	if err != nil {
-		return nil, err
+// initRoutes formats the route information from the global emersyxConfig instance (initialized via loadConfig) such
+// that it can be passed as argument to the emrtrapi.RouterOptions.Routes method.
+func initRoutes() map[string][]string {
+	var m = make(map[string][]string)
+
+	for _, cfg := range ec.Routes {
+		val, ok := m[cfg.Source]
+		if ok {
+			val := append(val, cfg.Destination...)
+			m[cfg.Source] = val
+		} else {
+			narr := make([]string, len(cfg.Destination))
+			copy(narr, cfg.Destination)
+			m[cfg.Source] = narr
+		}
 	}
-	rtr, err := emrtrapi.NewRouter(plug)
-	return rtr, nil
+
+	return m
+}
+
+// newRouter creates and initializez an emrtrapi.Router object as specified in the emersyx configuration file. Under
+// the hood, the emrtrapi.NewRouter function is used.
+func newRouter(
+	gws []emcomapi.Identifiable, procs []emcomapi.Processor, routes map[string][]string,
+) emrtrapi.Router {
+
+	if gws == nil || len(gws) == 0 {
+		el.Fatalln("cannot create a router without any gateways")
+	}
+	if procs == nil || len(procs) == 0 {
+		el.Fatalln("cannot create a router without any processors")
+	}
+	if routes == nil || len(routes) == 0 {
+		el.Fatalln("cannot create a router without any routes")
+	} else {
+		for key, val := range routes {
+			if val == nil || len(val) == 0 {
+				el.Fatalln(fmt.Sprintf("route for receptor source \"%s\" has no processor destinations", key))
+			}
+		}
+	}
+
+	// the constant 3 in the call to make below is the number of options (i.e. number of methods in
+	// emrtrapi.RouterOptions)
+	optarg := make([]func(emrtrapi.Router) error, 3)
+
+	p := getPlugin(ec.Router.PluginPath)
+	opt, err := emrtrapi.NewRouterOptions(p)
+
+	optarg = append(optarg, opt.Gateways(gws...))
+	optarg = append(optarg, opt.Processors(procs...))
+	optarg = append(optarg, opt.Routes(routes))
+
+	rtr, err := emrtrapi.NewRouter(p, optarg...)
+	if err != nil {
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while creating a new router")
+	}
+	return rtr
 }

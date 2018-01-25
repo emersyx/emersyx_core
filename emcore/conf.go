@@ -61,11 +61,11 @@ type emersyxConfig struct {
 
 // loadConfig opens, reads and parses the toml configuration file specified as command line argument. The parseFlags
 // function needs to be called before this one.
-func loadConfig() error {
+func loadConfig() {
 	// read the parameters from the specified configuration file
 	_, err := toml.DecodeFile(*flConfFile, &ec)
 	if err != nil {
-		return err
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while loading the configuration file")
 	}
-	return nil
 }
