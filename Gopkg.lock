@@ -4,8 +4,8 @@
 [[projects]]
   branch = "master"
   name = "emersyx.net/emersyx_apis"
-  packages = ["emcomapi","emircapi","emrtrapi","emtgapi"]
-  revision = "7d7a6d4783a19b96d658270af206b1e04de8c941"
+  packages = ["emcomapi","emircapi","emtgapi"]
+  revision = "2ff5e668f18159ebf8fec9b99c5bec924d72b3c0"
 
 [[projects]]
   branch = "master"
@@ -22,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8f396a5e590835ec9327b7f89c82056bbd994aa1a6b4699d329cb30d48d2b268"
+  inputs-digest = "774067ea0e1bdd38b8a695187e76911477d915874835a218bd467ac907eab937"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -3,7 +3,6 @@ package main
 import (
 	"emersyx.net/emersyx_apis/emcomapi"
 	"emersyx.net/emersyx_apis/emircapi"
-	"emersyx.net/emersyx_apis/emrtrapi"
 	"emersyx.net/emersyx_apis/emtgapi"
 	"emersyx.net/emersyx_log/emlog"
 	"flag"
@@ -191,15 +190,30 @@ func initGateways() []emcomapi.Identifiable {
 
 // initProcessors creates and initializez emcomapi.Processor objects for all processors specified in the emersyx
 // configuration file. The objects are returned in an array of type []emcomapi.Processor.
-func initProcessors() []emcomapi.Processor {
+func initProcessors(rtr emcomapi.Router) []emcomapi.Processor {
 	procs := make([]emcomapi.Processor, len(ec.Processors))
 
 	for _, pcfg := range ec.Processors {
 		p := getPlugin(pcfg.PluginPath)
-		proc, err := emcomapi.NewProcessor(p, pcfg.Identifier, pcfg.Config)
+		opts, err := emcomapi.NewProcessorOptions(p)
 		if err != nil {
 			el.Errorln(err.Error())
-			el.Fatalln("error occured while creating a new IRC gateway")
+			el.Fatalln("error occured while creating a new ProcessorOptons instance")
+		}
+
+		proc, err := emcomapi.NewProcessor(p,
+			opts.Identifier(pcfg.Identifier),
+			opts.Config(pcfg.Config),
+			opts.Router(rtr),
+		)
+		if err != nil {
+			el.Errorln(err.Error())
+			el.Fatalln(
+				fmt.Sprintf(
+					"error occured while creating a new Processor instance with identifier \"%s\"",
+					pcfg.Identifier,
+				),
+			)
 		}
 		procs = append(procs, proc)
 	}
@@ -208,7 +222,7 @@ func initProcessors() []emcomapi.Processor {
 }
 
 // initRoutes formats the route information from the global emersyxConfig instance (initialized via loadConfig) such
-// that it can be passed as argument to the emrtrapi.RouterOptions.Routes method.
+// that it can be passed as argument to the emcomapi.RouterOptions.Routes method.
 func initRoutes() map[string][]string {
 	var m = make(map[string][]string)
 
@@ -227,12 +241,26 @@ func initRoutes() map[string][]string {
 	return m
 }
 
-// newRouter creates and initializez an emrtrapi.Router object as specified in the emersyx configuration file. Under
-// the hood, the emrtrapi.NewRouter function is used.
-func newRouter(
-	gws []emcomapi.Identifiable, procs []emcomapi.Processor, routes map[string][]string,
-) emrtrapi.Router {
+// newRouter creates an emcomapi.Router object as specified in the emersyx configuration file. Under the hood, the
+// emcomapi.NewRouter function is used.
+func newRouter() emcomapi.Router {
+	p := getPlugin(ec.Router.PluginPath)
+	rtr, err := emcomapi.NewRouter(p)
+	if err != nil {
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while creating a new router")
+	}
+	return rtr
+}
 
+// initRouter sets the options on the provided Router object. The options include Gateways, Processors and Routes. Under
+// the hood, an emcomapi.RouterOptions object is used together with emcomapi.Router.SetOptions.
+func initRouter(
+	rtr emcomapi.Router,
+	gws []emcomapi.Identifiable,
+	procs []emcomapi.Processor,
+	routes map[string][]string,
+) {
 	if gws == nil || len(gws) == 0 {
 		el.Fatalln("cannot create a router without any gateways")
 	}
@@ -250,20 +278,19 @@ func newRouter(
 	}
 
 	// the constant 3 in the call to make below is the number of options (i.e. number of methods in
-	// emrtrapi.RouterOptions)
-	optarg := make([]func(emrtrapi.Router) error, 3)
+	// emcomapi.RouterOptions)
+	optarg := make([]func(emcomapi.Router) error, 3)
 
 	p := getPlugin(ec.Router.PluginPath)
-	opt, err := emrtrapi.NewRouterOptions(p)
+	opt, err := emcomapi.NewRouterOptions(p)
 
 	optarg = append(optarg, opt.Gateways(gws...))
 	optarg = append(optarg, opt.Processors(procs...))
 	optarg = append(optarg, opt.Routes(routes))
 
-	rtr, err := emrtrapi.NewRouter(p, optarg...)
+	err = rtr.SetOptions(optarg...)
 	if err != nil {
 		el.Errorln(err.Error())
-		el.Fatalln("error occured while creating a new router")
+		el.Fatalln("error occured while configuring the event router")
 	}
-	return rtr
 }

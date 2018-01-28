@@ -5,10 +5,13 @@ func main() {
 	initLogging()
 	loadConfig()
 
-	rtr := newRouter(
+	rtr := newRouter()
+	initRouter(
+		rtr,
 		initGateways(),
-		initProcessors(),
+		initProcessors(rtr),
 		initRoutes(),
 	)
+
 	rtr.Run()
 }
