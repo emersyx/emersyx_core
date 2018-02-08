@@ -1,7 +1,7 @@
 [[processors]]
-plugin_path = "path/to/emirc2tg.so"
-identifier = "emirc2tg"
-config = "path/to/emirc2tg.toml"
+plugin_path = "path/to/emi2t.so"
+identifier = "emi2t"
+config = "path/to/emi2t.toml"
 
 [[processors]]
 plugin_path = "path/to/emirc_voice.so"
@@ -43,8 +43,8 @@ plugin_path = "path/to/emrouter.so"
 
 [[routes]]
 source = "example_irc_id"
-destination = [ "emirc2tg", "emirc_voice" ]
+destination = [ "emi2t", "emirc_voice" ]
 
 [[routes]]
 source = "example_telegram_id"
-destination = [ "emirc2tg" ]
+destination = [ "emi2t" ]

@@ -34,16 +34,16 @@ func TestParsing(t *testing.T) {
 	}
 
 	proc := ec.Processors[0]
-	if proc.PluginPath != "path/to/emirc2tg.so" {
-		t.Log(fmt.Sprintf("incorrect processor plugin path for emirc2tg, got \"%s\"", proc.PluginPath))
+	if proc.PluginPath != "path/to/emi2t.so" {
+		t.Log(fmt.Sprintf("incorrect processor plugin path for emi2t, got \"%s\"", proc.PluginPath))
 		t.Fail()
 	}
-	if proc.Identifier != "emirc2tg" {
-		t.Log(fmt.Sprintf("incorrect processor identifier for emirc2tg, got \"%s\"", proc.Identifier))
+	if proc.Identifier != "emi2t" {
+		t.Log(fmt.Sprintf("incorrect processor identifier for emi2t, got \"%s\"", proc.Identifier))
 		t.Fail()
 	}
-	if proc.Config != "path/to/emirc2tg.toml" {
-		t.Log(fmt.Sprintf("incorrect processor config file path for emirc2tg, got \"%s\"", proc.Config))
+	if proc.Config != "path/to/emi2t.toml" {
+		t.Log(fmt.Sprintf("incorrect processor config file path for emi2t, got \"%s\"", proc.Config))
 		t.Fail()
 	}
 
@@ -61,7 +61,7 @@ func TestParsing(t *testing.T) {
 		t.Log(fmt.Sprintf("incorrect number of destinations for the example_irc_id route, expected 2, got %d", len(rt.Destination)))
 		t.Fail()
 	}
-	if rt.Destination[0] != "emirc2tg" || rt.Destination[1] != "emirc_voice" {
+	if rt.Destination[0] != "emi2t" || rt.Destination[1] != "emirc_voice" {
 		t.Log("incorrect values for destinations of the example_irc_id")
 		t.Fail()
 	}
