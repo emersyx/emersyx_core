@@ -7,6 +7,7 @@ import (
 	"emersyx.net/emersyx_log/emlog"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"plugin"
 )
@@ -25,7 +26,7 @@ var flLogLevel *uint
 var flConfFile *string
 
 // el is the emlog.EmersyxLogger global instance used throughout the emcore component.
-var el emlog.EmersyxLogger
+var el *emlog.EmersyxLogger
 
 // plugins is a map object. The keys are filesystem paths to go plugin files and the values are pointers to
 // plugin.Plugin objects. This map is used by the getPlugin function.
@@ -47,8 +48,23 @@ func parseFlags() {
 // this one.
 func initLogging() {
 	var err error
+	var sinks []io.Writer
 
-	el, err = emlog.NewEmersyxLogger(*flLogStdout, *flLogFile, "emcore", *flLogLevel)
+	if flLogStdout != nil && *flLogStdout == true {
+		sinks = append(sinks, os.Stdout)
+	}
+
+	if flLogFile != nil {
+		f, err := os.OpenFile(*flLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("error occured while initializing the logger")
+			os.Exit(1)
+		}
+		sinks = append(sinks, f)
+	}
+
+	el, err = emlog.NewEmersyxLogger(io.MultiWriter(sinks...), "emcore", *flLogLevel)
 	if err != nil {
 		// do not use the logger here since it might have not been initialized
 		fmt.Println("error occured while initializing the logger")
