@@ -5,13 +5,13 @@
   branch = "master"
   name = "emersyx.net/emersyx_apis"
   packages = ["emcomapi","emircapi","emtgapi"]
-  revision = "477094bae901b362bd64a1bc27aaad7ebadefc6d"
+  revision = "e701694e164b2bbbedbaaf461b095034edfb4494"
 
 [[projects]]
   branch = "master"
   name = "emersyx.net/emersyx_log"
   packages = ["emlog"]
-  revision = "36c831a4deefb774ea036eb78b0f49cf6edd97f0"
+  revision = "9429657b411b6d0eb366a6659d90773bcb79f080"
 
 [[projects]]
   name = "github.com/BurntSushi/toml"
