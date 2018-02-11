@@ -67,8 +67,8 @@ func initLogging() {
 	el, err = emlog.NewEmersyxLogger(io.MultiWriter(sinks...), "emcore", *flLogLevel)
 	if err != nil {
 		// do not use the logger here since it might have not been initialized
-		fmt.Println("error occured while initializing the logger")
 		fmt.Println(err.Error())
+		fmt.Println("error occured while initializing the logger")
 		os.Exit(1)
 	}
 }
