@@ -54,7 +54,7 @@ func initLogging() {
 		sinks = append(sinks, os.Stdout)
 	}
 
-	if flLogFile != nil {
+	if len(*flLogFile) > 0 {
 		f, err := os.OpenFile(*flLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -81,10 +81,11 @@ func getPlugin(path string) *plugin.Plugin {
 
 	// check if the plugin was previously opened and cached, and if not then open it now
 	if ok != true {
-		p, err := plugin.Open(path)
+		var err error
+		p, err = plugin.Open(path)
 		if err != nil {
 			el.Errorln(err.Error())
-			el.Fatalln("error occured while loading go plugin at path \"%s\"\n", path)
+			el.Fatalf("error occured while loading go plugin at path \"%s\"\n", path)
 			return nil
 		}
 		// if a new plugin has been opened, then save it into the "plugins" global map

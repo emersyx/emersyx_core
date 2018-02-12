@@ -5,7 +5,7 @@ language: go
 
 # versions to test against
 go:
-    - 1.9
+    - "1.10"
     - master
 
 matrix:
@@ -23,15 +23,6 @@ go_import_path: emersyx.net/emersyx_core
 
 # run make
 install: false
-
-before_script:
-    # these could be obtained via a dep ensure, but travis ci does not have dep
-    - go get github.com/golang/lint/golint      # get the official go linter
-    - go get emersyx.net/emersyx_apis/emcomapi
-    - go get emersyx.net/emersyx_apis/emircapi
-    - go get emersyx.net/emersyx_apis/emtgapi
-    - go get emersyx.net/emersyx_log/emlog
-    - go get github.com/BurntSushi/toml
 
 script:
     - make test
