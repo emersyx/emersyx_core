@@ -25,6 +25,9 @@ var flLogLevel *uint
 // flConfFile holds the value of the command line flag which specifies the emersyx configuration file.
 var flConfFile *string
 
+// elSinks is an io.MultiWriter instance containing all io.Writer instances to which logging messages must be sent.
+var elSinks io.Writer
+
 // el is the emlog.EmersyxLogger global instance used throughout the emcore component.
 var el *emlog.EmersyxLogger
 
@@ -64,7 +67,8 @@ func initLogging() {
 		sinks = append(sinks, f)
 	}
 
-	el, err = emlog.NewEmersyxLogger(io.MultiWriter(sinks...), "emcore", *flLogLevel)
+	elSinks = io.MultiWriter(sinks...)
+	el, err = emlog.NewEmersyxLogger(elSinks, "emcore", *flLogLevel)
 	if err != nil {
 		// do not use the logger here since it might have not been initialized
 		fmt.Println(err.Error())
@@ -100,10 +104,7 @@ func getPlugin(path string) *plugin.Plugin {
 func newIRCGateway(cfg ircGatewayConfig) emircapi.IRCGateway {
 	p := getPlugin(*cfg.PluginPath)
 
-	// the constant 7 in the call to make below is the maximum number of possible options (i.e. number of methods in
-	// emircapi.IRCOptions)
-	optarg := make([]func(emircapi.IRCGateway) error, 7)
-
+	optarg := make([]func(emircapi.IRCGateway) error, 0)
 	opt, err := emircapi.NewIRCOptions(p)
 	optarg = append(optarg, opt.Identifier(*cfg.Identifier))
 
@@ -139,8 +140,8 @@ func newIRCGateway(cfg ircGatewayConfig) emircapi.IRCGateway {
 func loadIRCGateways() []emcomapi.Identifiable {
 	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways))
 
-	for _, cfg := range ec.IRCGateways {
-		gws = append(gws, newIRCGateway(cfg))
+	for i, cfg := range ec.IRCGateways {
+		gws[i] = newIRCGateway(cfg)
 	}
 
 	return gws
@@ -151,10 +152,7 @@ func loadIRCGateways() []emcomapi.Identifiable {
 func newTelegramGateway(cfg telegramGatewayConfig) emtgapi.TelegramGateway {
 	p := getPlugin(*cfg.PluginPath)
 
-	// the constant 5 in the call to make below is the maximum number of possible options (i.e. number of methods in
-	// emtgapi.TelegramOptions)
-	optarg := make([]func(emtgapi.TelegramGateway) error, 5)
-
+	optarg := make([]func(emtgapi.TelegramGateway) error, 0)
 	opt, err := emtgapi.NewTelegramOptions(p)
 	optarg = append(optarg, opt.Identifier(*cfg.Identifier))
 
@@ -184,8 +182,8 @@ func newTelegramGateway(cfg telegramGatewayConfig) emtgapi.TelegramGateway {
 func loadTelegramGateways() []emcomapi.Identifiable {
 	gws := make([]emcomapi.Identifiable, len(ec.TelegramGateways))
 
-	for _, cfg := range ec.TelegramGateways {
-		gws = append(gws, newTelegramGateway(cfg))
+	for i, cfg := range ec.TelegramGateways {
+		gws[i] = newTelegramGateway(cfg)
 	}
 
 	return gws
@@ -194,7 +192,7 @@ func loadTelegramGateways() []emcomapi.Identifiable {
 // initGateways creates and initializez objects for all gateways specified in the emersyx configuration file. The
 // objects are returned in an array of type []emcomapi.Identifiable.
 func initGateways() []emcomapi.Identifiable {
-	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways)+len(ec.TelegramGateways))
+	gws := make([]emcomapi.Identifiable, 0)
 
 	irc := loadIRCGateways()
 	gws = append(gws, irc...)
@@ -210,18 +208,19 @@ func initGateways() []emcomapi.Identifiable {
 func initProcessors(rtr emcomapi.Router) []emcomapi.Processor {
 	procs := make([]emcomapi.Processor, len(ec.Processors))
 
-	for _, pcfg := range ec.Processors {
+	for i, pcfg := range ec.Processors {
 		p := getPlugin(pcfg.PluginPath)
 		opts, err := emcomapi.NewProcessorOptions(p)
 		if err != nil {
 			el.Errorln(err.Error())
-			el.Fatalln("error occured while creating a new ProcessorOptons instance")
+			el.Fatalln("error occured while creating a new ProcessorOptions instance")
 		}
 
 		proc, err := emcomapi.NewProcessor(p,
 			opts.Identifier(pcfg.Identifier),
 			opts.Config(pcfg.Config),
 			opts.Router(rtr),
+			opts.Logging(elSinks),
 		)
 		if err != nil {
 			el.Errorln(err.Error())
@@ -232,7 +231,7 @@ func initProcessors(rtr emcomapi.Router) []emcomapi.Processor {
 				),
 			)
 		}
-		procs = append(procs, proc)
+		procs[i] = proc
 	}
 
 	return procs
@@ -294,12 +293,13 @@ func initRouter(
 		}
 	}
 
-	// the constant 3 in the call to make below is the number of options (i.e. number of methods in
-	// emcomapi.RouterOptions)
-	optarg := make([]func(emcomapi.Router) error, 3)
-
+	optarg := make([]func(emcomapi.Router) error, 0)
 	p := getPlugin(ec.Router.PluginPath)
 	opt, err := emcomapi.NewRouterOptions(p)
+	if err != nil {
+		el.Errorln(err.Error())
+		el.Fatalln("error occured while creating a new RouterOptions instance")
+	}
 
 	optarg = append(optarg, opt.Gateways(gws...))
 	optarg = append(optarg, opt.Processors(procs...))
