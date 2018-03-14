@@ -220,7 +220,7 @@ func initProcessors(rtr emcomapi.Router) []emcomapi.Processor {
 			opts.Identifier(pcfg.Identifier),
 			opts.Config(pcfg.Config),
 			opts.Router(rtr),
-			opts.Logging(elSinks),
+			opts.Logging(elSinks, *flLogLevel),
 		)
 		if err != nil {
 			el.Errorln(err.Error())
