@@ -306,6 +306,7 @@ func initRouter(
 	optarg = append(optarg, opt.Gateways(gws...))
 	optarg = append(optarg, opt.Processors(procs...))
 	optarg = append(optarg, opt.Routes(routes))
+	optarg = append(optarg, opt.Logging(elSinks, *flLogLevel))
 
 	err = rtr.SetOptions(optarg...)
 	if err != nil {
