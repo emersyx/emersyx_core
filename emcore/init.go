@@ -106,6 +106,7 @@ func newIRCGateway(cfg ircGatewayConfig) emircapi.IRCGateway {
 
 	optarg := make([]func(emircapi.IRCGateway) error, 0)
 	opt, err := emircapi.NewIRCOptions(p)
+	optarg = append(optarg, opt.Logging(elSinks, *flLogLevel))
 	optarg = append(optarg, opt.Identifier(*cfg.Identifier))
 
 	if cfg.Nick != nil {
@@ -154,6 +155,7 @@ func newTelegramGateway(cfg telegramGatewayConfig) emtgapi.TelegramGateway {
 
 	optarg := make([]func(emtgapi.TelegramGateway) error, 0)
 	opt, err := emtgapi.NewTelegramOptions(p)
+	optarg = append(optarg, opt.Logging(elSinks, *flLogLevel))
 	optarg = append(optarg, opt.Identifier(*cfg.Identifier))
 
 	if cfg.APIToken != nil {
