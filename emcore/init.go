@@ -133,13 +133,21 @@ func newIRCGateway(cfg ircGatewayConfig) emircapi.IRCGateway {
 		el.Errorln(err.Error())
 		el.Fatalln("error occured while creating a new IRC gateway")
 	}
+
+	// automatically connect to the IRC server
+	if err = gw.Connect(); err != nil {
+		el.Errorln(err.Error())
+		el.Fatalf("could not connect to the \"%s\" IRC server", *cfg.Identifier)
+		return nil
+	}
+
 	return gw
 }
 
 // loadIRCGateways creates and initializez emircapi.IRCGateway objects for all IRC gateways specified in the emersyx
 // configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
-func loadIRCGateways() []emcomapi.Identifiable {
-	gws := make([]emcomapi.Identifiable, len(ec.IRCGateways))
+func loadIRCGateways() []emcomapi.Gateway {
+	gws := make([]emcomapi.Gateway, len(ec.IRCGateways))
 
 	for i, cfg := range ec.IRCGateways {
 		gws[i] = newIRCGateway(cfg)
@@ -181,8 +189,8 @@ func newTelegramGateway(cfg telegramGatewayConfig) emtgapi.TelegramGateway {
 
 // loadTelegramGateways creates and initializez emtgapi.TelegramGateway objects for all Telegram gateways specified in
 // the emersyx configuration file. The objects are returned in an array of type []emcomapi.Identifiable.
-func loadTelegramGateways() []emcomapi.Identifiable {
-	gws := make([]emcomapi.Identifiable, len(ec.TelegramGateways))
+func loadTelegramGateways() []emcomapi.Gateway {
+	gws := make([]emcomapi.Gateway, len(ec.TelegramGateways))
 
 	for i, cfg := range ec.TelegramGateways {
 		gws[i] = newTelegramGateway(cfg)
@@ -193,8 +201,8 @@ func loadTelegramGateways() []emcomapi.Identifiable {
 
 // initGateways creates and initializez objects for all gateways specified in the emersyx configuration file. The
 // objects are returned in an array of type []emcomapi.Identifiable.
-func initGateways() []emcomapi.Identifiable {
-	gws := make([]emcomapi.Identifiable, 0)
+func initGateways() []emcomapi.Gateway {
+	gws := make([]emcomapi.Gateway, 0)
 
 	irc := loadIRCGateways()
 	gws = append(gws, irc...)
@@ -275,7 +283,7 @@ func newRouter() emcomapi.Router {
 // the hood, an emcomapi.RouterOptions object is used together with emcomapi.Router.SetOptions.
 func initRouter(
 	rtr emcomapi.Router,
-	gws []emcomapi.Identifiable,
+	gws []emcomapi.Gateway,
 	procs []emcomapi.Processor,
 	routes map[string][]string,
 ) {
